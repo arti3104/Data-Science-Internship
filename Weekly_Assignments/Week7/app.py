@@ -1,59 +1,62 @@
 import streamlit as st
 import numpy as np
+import pandas as pd
 import plotly.express as px
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import LogisticRegression
 
-st.title("💼 Remote Work Productivity Predictor")
-st.write("Estimate productivity levels of remote employees based on behavioral and environmental factors.")
+# Title
+st.title("❤️ Heart Disease Risk Predictor")
+st.write("This app predicts the risk of heart disease based on health indicators.")
 
-# Input Features
-hours_worked = st.slider("Average Daily Work Hours", 0, 12, 6)
-distractions = st.slider("Daily Distraction Time (in minutes)", 0, 240, 60)
-meetings = st.slider("Average Meetings per Day", 0, 10, 2)
-workspace = st.selectbox("Dedicated Workspace?", ["Yes", "No"])
-exercise = st.selectbox("Exercises Regularly?", ["Yes", "No"])
-flexibility = st.selectbox("Flexible Working Hours?", ["Yes", "No"])
+# Sidebar Inputs
+age = st.slider("Age", 20, 80, 45)
+resting_bp = st.slider("Resting Blood Pressure (mm Hg)", 80, 200, 120)
+cholesterol = st.slider("Cholesterol Level (mg/dL)", 100, 400, 220)
+max_hr = st.slider("Max Heart Rate", 60, 220, 150)
+fasting_bs = st.selectbox("Fasting Blood Sugar > 120 mg/dL?", ["No", "Yes"])
+chest_pain = st.selectbox("Chest Pain Type", ["Typical", "Atypical", "Non-anginal", "Asymptomatic"])
 
-# Encoding
-binary_map = {"Yes": 1, "No": 0}
+# Convert categorical inputs
+fbs_map = {"No": 0, "Yes": 1}
+cp_map = {"Typical": 0, "Atypical": 1, "Non-anginal": 2, "Asymptomatic": 3}
+
 X_input = np.array([
-    hours_worked,
-    distractions,
-    meetings,
-    binary_map[workspace],
-    binary_map[exercise],
-    binary_map[flexibility]
+    age,
+    resting_bp,
+    cholesterol,
+    max_hr,
+    fbs_map[fasting_bs],
+    cp_map[chest_pain]
 ]).reshape(1, -1)
 
-# Simulated dataset
-np.random.seed(42)
-X_train = np.random.randint(0, 12, (300, 6))
-y_train = (X_train[:, 0] - X_train[:, 1]/60 + X_train[:, 3] + X_train[:, 4]) > 7  # pseudo logic for productivity
+# Simulate training data
+X_train = np.random.randint(0, 200, (150, 6))
+y_train = (X_train[:, 0] + X_train[:, 1] + X_train[:, 2]) > 300  # Simulated risk rule
 
 # Train model
-model = RandomForestClassifier()
+model = LogisticRegression()
 model.fit(X_train, y_train)
 
-# Prediction
+# Predict
 prediction = model.predict(X_input)[0]
-confidence = model.predict_proba(X_input)[0][1]
+proba = model.predict_proba(X_input)[0][1]
 
-# Result Display
-st.subheader("📈 Prediction:")
-if prediction:
-    st.success("✅ This employee is likely to be **Highly Productive**!")
+# Output
+st.subheader("📊 Prediction:")
+if prediction == 1:
+    st.error("⚠️ At **High Risk** of Heart Disease")
 else:
-    st.warning("⚠️ This employee may struggle with productivity.")
+    st.success("✅ **Low Risk** of Heart Disease")
 
-st.write(f"Confidence Score: **{round(confidence * 100, 2)}%**")
+st.write(f"Prediction Confidence: **{round(proba * 100, 2)}%**")
 
 # Visualization
-st.subheader("🔍 Prediction Probability")
+st.subheader("📈 Confidence Score Chart")
 fig = px.bar(
-    x=["Low Productivity", "High Productivity"],
+    x=["Low Risk", "High Risk"],
     y=model.predict_proba(X_input)[0],
-    color=["Low Productivity", "High Productivity"],
-    labels={"x": "Productivity Level", "y": "Probability"},
-    color_discrete_sequence=["orange", "green"]
+    labels={"x": "Outcome", "y": "Probability"},
+    color=["Low Risk", "High Risk"],
+    color_discrete_sequence=["green", "red"]
 )
 st.plotly_chart(fig)
