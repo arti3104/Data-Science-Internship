@@ -5,6 +5,10 @@ import joblib
 import shap
 import matplotlib.pyplot as plt
 import plotly.express as px
+import os, streamlit as st
+
+st.write("📂 Current working directory:", os.getcwd())
+st.write("🗂️ Files in this directory:", os.listdir())
 
 # Page config
 st.set_page_config(page_title="Customer Churn Predictor", layout="wide")
