@@ -71,18 +71,6 @@ if page == "🔮 Prediction":
     else:
         st.success("Low risk: No action needed.")
 
-    # SHAP Explainability
-    st.subheader("🧠 Feature Importance")
-    try:
-        explainer = shap.TreeExplainer(model)
-        shap_values = explainer.shap_values(X)
-        st.set_option('deprecation.showPyplotGlobalUse', False)
-        shap.summary_plot(shap_values, X)
-        st.pyplot(bbox_inches='tight')
-    except Exception as e:
-        st.warning("SHAP explainability failed or not supported for this model.")
-        st.text(str(e))
-
 # -------------------------------------
 # 📈 Dashboard Page
 # -------------------------------------
