@@ -38,15 +38,18 @@ if page == "🔮 Prediction":
     contract = st.selectbox("Contract Type", ["Month-to-month", "One year", "Two year"])
 
     input_data = pd.DataFrame({
-        "gender": [gender],
-        "SeniorCitizen": [1 if senior == "Yes" else 0],
-        "Partner": [partner],
-        "Dependents": [dependents],
-        "tenure": [tenure],
-        "MonthlyCharges": [monthly],
-        "TotalCharges": [total],
-        "Contract": [contract]
+    "gender": [gender],
+    "SeniorCitizen": [1 if senior == "Yes" else 0],
+    "Partner": [partner],
+    "Dependents": [dependents],
+    "tenure": [tenure],
+    "MonthlyCharges": [monthly],
+    "TotalCharges": [total],
+    "Contract": [contract]
     })
+
+    encoder_cols = ['gender', 'SeniorCitizen', 'Partner', 'Dependents',
+                'tenure', 'MonthlyCharges', 'TotalCharges', 'Contract']
 
     # Reorder columns to match training
     X = input_data.reindex(columns=encoder_cols)
