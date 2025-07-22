@@ -11,9 +11,9 @@ import os, streamlit as st
 st.set_page_config(page_title="Customer Churn Predictor", layout="wide")
 
 # Load model and encoder columns
-model = joblib.load("Project/churn_model.pkl")
-encoder = joblib.load("Project/encoder.pkl")
-df = pd.read_csv("Project/Dataset/Telco-Customer-Churn.csv")
+model = joblib.load("churn_model.pkl")
+encoder = joblib.load("encoder.pkl")
+df = pd.read_csv("Dataset/Telco-Customer-Churn.csv")
 
 # Sidebar navigation
 st.sidebar.title("📊 Navigation")
@@ -87,7 +87,7 @@ elif page == "📈 Dashboard":
     st.title("Churn Analytics Dashboard")
 
     # Load dataset
-   df = pd.read_csv("Project/Dataset/Telco-Customer-Churn.csv")
+   df = pd.read_csv("Dataset/Telco-Customer-Churn.csv")
 
     # Show churn distribution
     st.subheader("1️⃣ Churn Distribution")
