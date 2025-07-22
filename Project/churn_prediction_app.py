@@ -5,14 +5,13 @@ import joblib
 import shap
 import matplotlib.pyplot as plt
 import plotly.express as px
-import os, streamlit as st
 
 # Page config
 st.set_page_config(page_title="Customer Churn Predictor", layout="wide")
 
-# Load model and encoder columns
+# Load model and encoder
 model = joblib.load("Project/churn_model.pkl")
-encoder = joblib.load("Project/encoder.pkl")
+encoder = joblib.load("Project/encoder.pkl")  # Assume this is a ColumnTransformer or Pipeline
 df = pd.read_csv("Project/Dataset/Telco-Customer-Churn.csv")
 
 # Sidebar navigation
@@ -24,7 +23,6 @@ page = st.sidebar.radio("Go to", ["🔮 Prediction", "📈 Dashboard"])
 # -------------------------------------
 if page == "🔮 Prediction":
     st.title("Customer Churn Prediction")
-
     st.markdown("Fill the form to predict if a customer is likely to churn.")
 
     # Input form
@@ -33,68 +31,65 @@ if page == "🔮 Prediction":
     partner = st.selectbox("Has Partner", ["Yes", "No"])
     dependents = st.selectbox("Has Dependents", ["Yes", "No"])
     tenure = st.slider("Tenure (months)", 0, 72, 10)
-    monthly = st.slider("Monthly Charges", 20, 150, 70)
-    total = st.slider("Total Charges", 20, 10000, 1000)
+    monthly = st.number_input("Monthly Charges", 0.0, 200.0, 70.0)
+    total = st.number_input("Total Charges", 0.0, 10000.0, 1000.0)
     contract = st.selectbox("Contract Type", ["Month-to-month", "One year", "Two year"])
 
     input_data = pd.DataFrame({
-    "gender": [gender],
-    "SeniorCitizen": [1 if senior == "Yes" else 0],
-    "Partner": [partner],
-    "Dependents": [dependents],
-    "tenure": [tenure],
-    "MonthlyCharges": [monthly],
-    "TotalCharges": [total],
-    "Contract": [contract]
+        "gender": [gender],
+        "SeniorCitizen": [1 if senior == "Yes" else 0],
+        "Partner": [partner],
+        "Dependents": [dependents],
+        "tenure": [tenure],
+        "MonthlyCharges": [monthly],
+        "TotalCharges": [total],
+        "Contract": [contract]
     })
 
-    encoder_cols = ['gender', 'SeniorCitizen', 'Partner', 'Dependents',
-                'tenure', 'MonthlyCharges', 'TotalCharges', 'Contract']
+    try:
+        # If encoder is a pre-fitted transformer
+        X = encoder.transform(input_data)
 
-    # This assumes encoder.pkl is just a list of column names
-    X = input_data.reindex(columns=encoder)  # Reorder/structure columns
+        # Prediction
+        prediction = model.predict(X)[0]
+        proba = model.predict_proba(X)[0][1] * 100
 
-    # Predict
-    prediction = model.predict(X)[0]
-    proba = model.predict_proba(X)[0][1] * 100
+        st.subheader("📢 Result")
+        st.metric("Churn Probability", f"{proba:.2f}%")
+        st.write("Prediction:", "✅ Customer will churn" if prediction == 1 else "🟢 Customer will stay")
 
-    st.subheader("📢 Result")
-    st.metric("Churn Probability", f"{proba:.2f}%")
-    st.write("Prediction:", "✅ Customer will churn" if prediction == 1 else "🟢 Customer will stay")
+        # Retention suggestion
+        st.subheader("💡 Retention Suggestion")
+        if proba > 75:
+            st.warning("⚠️ High risk: Suggest 15% discount or call from retention team.")
+        elif proba > 50:
+            st.info("Moderate risk: Recommend email campaign or service upgrade.")
+        else:
+            st.success("Low risk: No action needed.")
 
-    # Retention suggestion
-    st.subheader("💡 Retention Suggestion")
-    if proba > 75:
-        st.warning("⚠️ High risk: Suggest 15% discount or call from retention team.")
-    elif proba > 50:
-        st.info("Moderate risk: Recommend email campaign or service upgrade.")
-    else:
-        st.success("Low risk: No action needed.")
+        # SHAP Explainability
+        st.subheader("🧠 Feature Importance")
+        try:
+            explainer = shap.TreeExplainer(model)
+            shap_values = explainer.shap_values(X)
 
-   # SHAP Explainability
-st.subheader("🧠 Feature Importance")
-try:
-    explainer = shap.TreeExplainer(model)
-    shap_values = explainer.shap_values(X)
+            fig, ax = plt.subplots()
+            shap.summary_plot(shap_values, X, show=False)
+            st.pyplot(fig)
 
-    # Future-safe plotting
-    import matplotlib.pyplot as plt
-    fig, ax = plt.subplots()
-    shap.summary_plot(shap_values, X, show=False)
-    st.pyplot(fig)
+        except Exception as e:
+            st.warning("SHAP explainability failed.")
+            st.text(str(e))
 
-except Exception as e:
-    st.warning("SHAP explainability failed or not supported for this model.")
-    st.text(str(e))
+    except Exception as e:
+        st.error("Error in prediction pipeline.")
+        st.text(str(e))
 
 # -------------------------------------
 # 📈 Dashboard Page
 # -------------------------------------
 elif page == "📈 Dashboard":
     st.title("Churn Analytics Dashboard")
-
-    # Load dataset
-    df = pd.read_csv("Project/Dataset/Telco-Customer-Churn.csv")
 
     # Show churn distribution
     st.subheader("1️⃣ Churn Distribution")
