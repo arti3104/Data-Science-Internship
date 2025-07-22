@@ -87,7 +87,7 @@ elif page == "📈 Dashboard":
     st.title("Churn Analytics Dashboard")
 
     # Load dataset
-   df = pd.read_csv("Project/Dataset/Telco-Customer-Churn.csv")
+    df = pd.read_csv("Project/Dataset/Telco-Customer-Churn.csv")
 
     # Show churn distribution
     st.subheader("1️⃣ Churn Distribution")
