@@ -51,12 +51,12 @@ if page == "🔮 Prediction":
     encoder_cols = ['gender', 'SeniorCitizen', 'Partner', 'Dependents',
                 'tenure', 'MonthlyCharges', 'TotalCharges', 'Contract']
 
-    # Reorder columns to match training
-    X_encoded = encoder.transform(input_data)
+    # This assumes encoder.pkl is just a list of column names
+    X = input_data.reindex(columns=encoder)  # Reorder/structure columns
 
     # Predict
-    prediction = model.predict(X_encoded)[0]
-    proba = model.predict_proba(X_encoded)[0][1] * 100
+    prediction = model.predict(X)[0]
+    proba = model.predict_proba(X)[0][1] * 100
 
     st.subheader("📢 Result")
     st.metric("Churn Probability", f"{proba:.2f}%")
