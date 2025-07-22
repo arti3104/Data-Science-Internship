@@ -11,6 +11,10 @@ incentives or personalized promotions.
 
 Dataset Link - https://www.kaggle.com/datasets/blastchar/telco-customer-churn
 
+ML Trained Model Files
+---- 1. churn_model.pkl----
+---- 2. encoder.pkl-----
+
 # My Customer Churn Predictor App
 Live App Link - https://data-science-internship-jzcc8hww9qtyzojvfpqt66.streamlit.app/
 
@@ -18,6 +22,10 @@ Live App Link - https://data-science-internship-jzcc8hww9qtyzojvfpqt66.streamlit
 # Prediction Page
 # Dashboard Page
 
-ML Trained Model Files
----- 1. churn_model.pkl----
----- 2. encoder.pkl-----
+Output Screenshots: 
+Prediction
+Prediction_2
+Dashboard1
+Dashboard2
+Dashboard3
+Dashboard4
