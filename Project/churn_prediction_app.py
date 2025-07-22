@@ -52,7 +52,7 @@ if page == "🔮 Prediction":
                 'tenure', 'MonthlyCharges', 'TotalCharges', 'Contract']
 
     # Reorder columns to match training
-    X = encoder.transform(input_data)
+    X = input_data.reindex(columns=encoder)  # Reorder/structure columns
 
     # Predict
     prediction = model.predict(X)[0]
