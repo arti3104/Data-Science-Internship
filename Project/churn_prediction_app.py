@@ -77,7 +77,7 @@ if page == "🔮 Prediction":
         explainer = shap.Explainer(model, X)
         shap_values = explainer(X)
 
-        st.set_option('deprecation.showPyplotGlobalUse', False)
+        #st.set_option('deprecation.showPyplotGlobalUse', False)
         shap.summary_plot(shap_values, X)
         st.pyplot(bbox_inches='tight')
     except Exception as e:
