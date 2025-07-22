@@ -74,8 +74,9 @@ if page == "🔮 Prediction":
     # SHAP Explainability
     st.subheader("🧠 Feature Importance")
     try:
-        explainer = shap.TreeExplainer(model)
-        shap_values = explainer.shap_values(X)
+        explainer = shap.Explainer(model, X_encoded)
+        shap_values = explainer(X_encoded)
+
         st.set_option('deprecation.showPyplotGlobalUse', False)
         shap.summary_plot(shap_values, X)
         st.pyplot(bbox_inches='tight')
