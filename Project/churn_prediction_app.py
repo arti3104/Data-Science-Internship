@@ -5,19 +5,15 @@ import joblib
 import shap
 import matplotlib.pyplot as plt
 import plotly.express as px
+import os, streamlit as st
 
 # Page config
 st.set_page_config(page_title="Customer Churn Predictor", layout="wide")
 
-# Load model
+# Load model and encoder columns
 model = joblib.load("Project/churn_model.pkl")
-
-# If you really need encoder.pkl, load it; otherwise, you can skip this
-# encoder = joblib.load("Project/encoder.pkl")
-
-# Define the feature columns used during training
-encoder_cols = ['gender', 'SeniorCitizen', 'Partner', 'Dependents',
-                'tenure', 'MonthlyCharges', 'TotalCharges', 'Contract']
+encoder = joblib.load("Project/encoder.pkl")
+df = pd.read_csv("Project/Dataset/Telco-Customer-Churn.csv")
 
 # Sidebar navigation
 st.sidebar.title("📊 Navigation")
@@ -28,6 +24,7 @@ page = st.sidebar.radio("Go to", ["🔮 Prediction", "📈 Dashboard"])
 # -------------------------------------
 if page == "🔮 Prediction":
     st.title("Customer Churn Prediction")
+
     st.markdown("Fill the form to predict if a customer is likely to churn.")
 
     # Input form
@@ -41,18 +38,21 @@ if page == "🔮 Prediction":
     contract = st.selectbox("Contract Type", ["Month-to-month", "One year", "Two year"])
 
     input_data = pd.DataFrame({
-        "gender": [gender],
-        "SeniorCitizen": [1 if senior == "Yes" else 0],
-        "Partner": [partner],
-        "Dependents": [dependents],
-        "tenure": [tenure],
-        "MonthlyCharges": [monthly],
-        "TotalCharges": [total],
-        "Contract": [contract]
+    "gender": [gender],
+    "SeniorCitizen": [1 if senior == "Yes" else 0],
+    "Partner": [partner],
+    "Dependents": [dependents],
+    "tenure": [tenure],
+    "MonthlyCharges": [monthly],
+    "TotalCharges": [total],
+    "Contract": [contract]
     })
 
+    encoder_cols = ['gender', 'SeniorCitizen', 'Partner', 'Dependents',
+                'tenure', 'MonthlyCharges', 'TotalCharges', 'Contract']
+
     # Reorder columns to match training
-    X_encoded = input_data.reindex(columns=encoder_cols)
+    X_encoded = encoder.transform(input_data)
 
     # Predict
     prediction = model.predict(X_encoded)[0]
@@ -75,9 +75,9 @@ if page == "🔮 Prediction":
     st.subheader("🧠 Feature Importance")
     try:
         explainer = shap.TreeExplainer(model)
-        shap_values = explainer.shap_values(X_encoded)
+        shap_values = explainer.shap_values(X)
         st.set_option('deprecation.showPyplotGlobalUse', False)
-        shap.summary_plot(shap_values, X_encoded)
+        shap.summary_plot(shap_values, X)
         st.pyplot(bbox_inches='tight')
     except Exception as e:
         st.warning("SHAP explainability failed or not supported for this model.")
