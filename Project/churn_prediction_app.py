@@ -52,11 +52,11 @@ if page == "🔮 Prediction":
                 'tenure', 'MonthlyCharges', 'TotalCharges', 'Contract']
 
     # Reorder columns to match training
-    X_encoded = encoder.transform(input_data)
+    X = encoder.transform(input_data)
 
     # Predict
-    prediction = model.predict(X_encoded)[0]
-    proba = model.predict_proba(X_encoded)[0][1] * 100
+    prediction = model.predict(X)[0]
+    proba = model.predict_proba(X)[0][1] * 100
 
     st.subheader("📢 Result")
     st.metric("Churn Probability", f"{proba:.2f}%")
