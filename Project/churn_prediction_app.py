@@ -9,10 +9,15 @@ import plotly.express as px
 # Page config
 st.set_page_config(page_title="Customer Churn Predictor", layout="wide")
 
-# Load model and encoder
+# Load model
 model = joblib.load("Project/churn_model.pkl")
-encoder = joblib.load("Project/encoder.pkl")  # This is a list of column names
-df = pd.read_csv("Project/Dataset/Telco-Customer-Churn.csv")
+
+# If you really need encoder.pkl, load it; otherwise, you can skip this
+# encoder = joblib.load("Project/encoder.pkl")
+
+# Define the feature columns used during training
+encoder_cols = ['gender', 'SeniorCitizen', 'Partner', 'Dependents',
+                'tenure', 'MonthlyCharges', 'TotalCharges', 'Contract']
 
 # Sidebar navigation
 st.sidebar.title("📊 Navigation")
@@ -31,8 +36,8 @@ if page == "🔮 Prediction":
     partner = st.selectbox("Has Partner", ["Yes", "No"])
     dependents = st.selectbox("Has Dependents", ["Yes", "No"])
     tenure = st.slider("Tenure (months)", 0, 72, 10)
-    monthly = st.number_input("Monthly Charges", 0.0, 200.0, 70.0)
-    total = st.number_input("Total Charges", 0.0, 10000.0, 1000.0)
+    monthly = st.slider("Monthly Charges", 20, 150, 70)
+    total = st.slider("Total Charges", 20, 10000, 1000)
     contract = st.selectbox("Contract Type", ["Month-to-month", "One year", "Two year"])
 
     input_data = pd.DataFrame({
@@ -46,43 +51,36 @@ if page == "🔮 Prediction":
         "Contract": [contract]
     })
 
+    # Reorder columns to match training
+    X_encoded = input_data.reindex(columns=encoder_cols)
+
+    # Predict
+    prediction = model.predict(X_encoded)[0]
+    proba = model.predict_proba(X_encoded)[0][1] * 100
+
+    st.subheader("📢 Result")
+    st.metric("Churn Probability", f"{proba:.2f}%")
+    st.write("Prediction:", "✅ Customer will churn" if prediction == 1 else "🟢 Customer will stay")
+
+    # Retention suggestion
+    st.subheader("💡 Retention Suggestion")
+    if proba > 75:
+        st.warning("⚠️ High risk: Suggest 15% discount or call from retention team.")
+    elif proba > 50:
+        st.info("Moderate risk: Recommend email campaign or service upgrade.")
+    else:
+        st.success("Low risk: No action needed.")
+
+    # SHAP Explainability
+    st.subheader("🧠 Feature Importance")
     try:
-        # Use encoder (list of columns) to reorder features correctly
-        X = input_data[encoder]
-
-        # Predict
-        prediction = model.predict(X)[0]
-        proba = model.predict_proba(X)[0][1] * 100
-
-        st.subheader("📢 Result")
-        st.metric("Churn Probability", f"{proba:.2f}%")
-        st.write("Prediction:", "✅ Customer will churn" if prediction == 1 else "🟢 Customer will stay")
-
-        # Retention suggestion
-        st.subheader("💡 Retention Suggestion")
-        if proba > 75:
-            st.warning("⚠️ High risk: Suggest 15% discount or call from retention team.")
-        elif proba > 50:
-            st.info("Moderate risk: Recommend email campaign or service upgrade.")
-        else:
-            st.success("Low risk: No action needed.")
-
-        # SHAP Explainability
-        st.subheader("🧠 Feature Importance")
-        try:
-            explainer = shap.TreeExplainer(model)
-            shap_values = explainer.shap_values(X)
-
-            fig, ax = plt.subplots()
-            shap.summary_plot(shap_values, X, show=False)
-            st.pyplot(fig)
-
-        except Exception as e:
-            st.warning("SHAP explainability failed.")
-            st.text(str(e))
-
+        explainer = shap.TreeExplainer(model)
+        shap_values = explainer.shap_values(X_encoded)
+        st.set_option('deprecation.showPyplotGlobalUse', False)
+        shap.summary_plot(shap_values, X_encoded)
+        st.pyplot(bbox_inches='tight')
     except Exception as e:
-        st.error("Error in prediction pipeline.")
+        st.warning("SHAP explainability failed or not supported for this model.")
         st.text(str(e))
 
 # -------------------------------------
@@ -90,6 +88,9 @@ if page == "🔮 Prediction":
 # -------------------------------------
 elif page == "📈 Dashboard":
     st.title("Churn Analytics Dashboard")
+
+    # Load dataset
+    df = pd.read_csv("Project/Dataset/Telco-Customer-Churn.csv")
 
     # Show churn distribution
     st.subheader("1️⃣ Churn Distribution")
@@ -110,4 +111,4 @@ elif page == "📈 Dashboard":
     fig3 = px.histogram(df, x="gender", color="Churn", barmode="group", title="Churn by Gender")
     st.plotly_chart(fig3)
 
-    #st.info("Add more plots like Churn by Tenure, Payment Method, Internet Service, etc.")
+  #  st.info("Add more plots like Churn by Tenure, Payment Method, Internet Service, etc.")
