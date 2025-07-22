@@ -11,6 +11,8 @@ incentives or personalized promotions.
 
 Dataset Link - https://www.kaggle.com/datasets/blastchar/telco-customer-churn
 
+Jupyter Notebook 📔 - Telco_Churn_Prediction.ipynb
+
 ML Trained Model Files
 ---- 1. churn_model.pkl----
 ---- 2. encoder.pkl-----
