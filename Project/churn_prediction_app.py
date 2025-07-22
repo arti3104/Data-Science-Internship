@@ -11,7 +11,7 @@ st.set_page_config(page_title="Customer Churn Predictor", layout="wide")
 
 # Load model and encoder
 model = joblib.load("Project/churn_model.pkl")
-encoder = joblib.load("Project/encoder.pkl")  # Assume this is a ColumnTransformer or Pipeline
+encoder = joblib.load("Project/encoder.pkl")  # This is a list of column names
 df = pd.read_csv("Project/Dataset/Telco-Customer-Churn.csv")
 
 # Sidebar navigation
@@ -47,10 +47,10 @@ if page == "🔮 Prediction":
     })
 
     try:
-        # If encoder is a pre-fitted transformer
-        X = encoder.transform(input_data)
+        # Use encoder (list of columns) to reorder features correctly
+        X = input_data[encoder]
 
-        # Prediction
+        # Predict
         prediction = model.predict(X)[0]
         proba = model.predict_proba(X)[0][1] * 100
 
@@ -110,4 +110,4 @@ elif page == "📈 Dashboard":
     fig3 = px.histogram(df, x="gender", color="Churn", barmode="group", title="Churn by Gender")
     st.plotly_chart(fig3)
 
-    st.info("Add more plots like Churn by Tenure, Payment Method, Internet Service, etc.")
+    #st.info("Add more plots like Churn by Tenure, Payment Method, Internet Service, etc.")
