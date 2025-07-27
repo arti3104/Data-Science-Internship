@@ -7,6 +7,7 @@ st.title("📊 Loan Approval RAG Chatbot")
 bot = RAGChatbot("Weekly_Assignments/Week8/data/Training Dataset.csv")
 
 question = st.text_input("Ask a question about the loan data:")
+
 if st.button("Get Answer") and question:
     answer = bot.get_answer(question)
     st.success(answer)
