@@ -1,15 +1,13 @@
-from langchain.vectorstores import Chroma
-from langchain_community.embeddings import HuggingFaceEmbeddings
-
-embeddings = HuggingFaceEmbeddings(
-    model_name="sentence-transformers/all-MiniLM-L6-v2",
-    model_kwargs={"device": "cpu"}  # Force CPU mode to avoid NotImplementedError
-)
-
-import os
 import pandas as pd
 from langchain.schema import Document
 from langchain.text_splitter import CharacterTextSplitter
+from langchain.vectorstores import Chroma
+from langchain.chains import RetrievalQA
+from langchain.llms import HuggingFaceHub
+
+# Use SentenceTransformer directly to fix the NotImplementedError
+from sentence_transformers import SentenceTransformer
+from langchain_community.embeddings import HuggingFaceEmbeddings
 
 class RAGChatbot:
     def __init__(self, csv_path):
@@ -30,17 +28,16 @@ class RAGChatbot:
     def _build_vectorstore(self):
         splitter = CharacterTextSplitter(chunk_size=500, chunk_overlap=50)
         split_docs = splitter.split_documents(self.docs)
-        embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
-        
-        # 💡 Use Chroma and store in memory
+
+        # Safe CPU-based embedding model
+        model = SentenceTransformer("all-MiniLM-L6-v2", device='cpu')
+        embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
+
         vectorstore = Chroma.from_documents(split_docs, embeddings, persist_directory=".chroma_index")
         return vectorstore
 
     def _build_qa_chain(self):
-        # If you're not using OpenAI, switch this to any HuggingFaceHub LLM or mock
-        from langchain.llms import HuggingFaceHub
         llm = HuggingFaceHub(repo_id="google/flan-t5-base", model_kwargs={"temperature": 0.5})
-        
         retriever = self.vectorstore.as_retriever(search_kwargs={"k": 3})
         qa_chain = RetrievalQA.from_chain_type(llm=llm, retriever=retriever, chain_type="stuff")
         return qa_chain
