@@ -2,6 +2,6 @@ pandas
 langchain
 streamlit
 sentence-transformers
+chromadb
 transformers
 torch
-chromadb
