@@ -1,17 +1,6 @@
-import pandas as pd
 from langchain.vectorstores import Chroma
-import tempfile
-...
-persist_directory = tempfile.mkdtemp()
-vectorstore = Chroma.from_documents(split_docs, embeddings, persist_directory=persist_directory)
-
 from langchain.embeddings import HuggingFaceEmbeddings
-from langchain.text_splitter import CharacterTextSplitter
-from langchain.llms import HuggingFacePipeline
-from langchain.chains import RetrievalQA
-from langchain.docstore.document import Document
-
-from transformers import AutoTokenizer, AutoModelForSeq2SeqLM, pipeline
+import os
 
 class RAGChatbot:
     def __init__(self, csv_path):
@@ -33,19 +22,16 @@ class RAGChatbot:
         splitter = CharacterTextSplitter(chunk_size=500, chunk_overlap=50)
         split_docs = splitter.split_documents(self.docs)
         embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
-        persist_directory = tempfile.mkdtemp()
-        vectorstore = Chroma.from_documents(split_docs, embeddings, persist_directory=persist_directory)
+        
+        # 💡 Use Chroma and store in memory
+        vectorstore = Chroma.from_documents(split_docs, embeddings, persist_directory=".chroma_index")
         return vectorstore
 
     def _build_qa_chain(self):
-        # Use HuggingFace transformers to create a QA pipeline
-        model_name = "google/flan-t5-base"  # Free and lightweight
-        tokenizer = AutoTokenizer.from_pretrained(model_name)
-        model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
-        hf_pipeline = pipeline("text2text-generation", model=model, tokenizer=tokenizer)
-
-        llm = HuggingFacePipeline(pipeline=hf_pipeline)
-
+        # If you're not using OpenAI, switch this to any HuggingFaceHub LLM or mock
+        from langchain.llms import HuggingFaceHub
+        llm = HuggingFaceHub(repo_id="google/flan-t5-base", model_kwargs={"temperature": 0.5})
+        
         retriever = self.vectorstore.as_retriever(search_kwargs={"k": 3})
         qa_chain = RetrievalQA.from_chain_type(llm=llm, retriever=retriever, chain_type="stuff")
         return qa_chain
