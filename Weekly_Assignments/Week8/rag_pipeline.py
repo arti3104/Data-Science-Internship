@@ -1,6 +1,7 @@
 from langchain.vectorstores import Chroma
 from langchain.embeddings import HuggingFaceEmbeddings
 import os
+import pandas as pd
 
 class RAGChatbot:
     def __init__(self, csv_path):
