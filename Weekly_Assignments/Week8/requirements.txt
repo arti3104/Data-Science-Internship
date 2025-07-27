@@ -1,7 +1,8 @@
-pandas
 langchain
-streamlit
-sentence-transformers
+langchain-community
 chromadb
+sentence-transformers
 transformers
 torch
+pandas
+streamlit
