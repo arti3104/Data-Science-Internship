@@ -1,5 +1,10 @@
 import pandas as pd
-from langchain.vectorstores import FAISS
+from langchain.vectorstores import Chroma
+import tempfile
+...
+persist_directory = tempfile.mkdtemp()
+vectorstore = Chroma.from_documents(split_docs, embeddings, persist_directory=persist_directory)
+
 from langchain.embeddings import HuggingFaceEmbeddings
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.llms import HuggingFacePipeline
@@ -28,7 +33,8 @@ class RAGChatbot:
         splitter = CharacterTextSplitter(chunk_size=500, chunk_overlap=50)
         split_docs = splitter.split_documents(self.docs)
         embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
-        vectorstore = FAISS.from_documents(split_docs, embeddings)
+        persist_directory = tempfile.mkdtemp()
+        vectorstore = Chroma.from_documents(split_docs, embeddings, persist_directory=persist_directory)
         return vectorstore
 
     def _build_qa_chain(self):
