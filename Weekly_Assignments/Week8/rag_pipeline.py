@@ -3,7 +3,7 @@ from langchain.embeddings import HuggingFaceEmbeddings
 import os
 import pandas as pd
 from langchain.schema import Document
-
+from langchain.text_splitter import CharacterTextSplitter
 
 class RAGChatbot:
     def __init__(self, csv_path):
